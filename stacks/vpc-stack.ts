@@ -1,13 +1,14 @@
 import { Construct } from "constructs";
-import { TerraformStack } from "cdktf";
+import { TerraformStack, Token } from "cdktf";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
+//import { VpcEndpoint } from "../.gen/modules/VpcEndpoint";
 import { Vpc } from "../.gen/modules/Vpc";
-import { VpcEndpoint } from "../.gen/modules/VpcEndpoint";
+import { Subnets } from "../.gen/modules/Subnets";
 
+import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
-//import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 
 export class VpcStack extends TerraformStack {
   constructor(scope: Construct, id: string) {
@@ -21,25 +22,26 @@ export class VpcStack extends TerraformStack {
     const vpc = new Vpc(this, "MyVpc", {
       name: "my-vpc",
       cidr: "10.0.0.0/16",
+      enableDnsHostnames: true,
+      enableDnsSupport: true,
       azs: ["ap-northeast-1a", "ap-northeast-1c"],
-      privateSubnets: [
-        "10.0.0.0/24",
-        "10.0.1.0/24",
-        "10.0.2.0/24",
-        "10.0.3.0/24",
-        "10.0.4.0/24",
-        "10.0.5.0/24",
-        "10.0.6.0/24",
-      ],
-      privateSubnetNames: [
-        "PrivateEcs1",
-        "PrivateEcs2",
-        "PrivateDb1",
-        "PrivateDb2",
-        "PrivateAlb1",
-        "PrivateAlb2",
-        "PrivateBastion1",
-      ],
+      privateSubnets: ["10.0.0.0/24", "10.0.1.0/24"],
+      privateSubnetNames: ["PrivateAlb1", "PrivateAlb2"],
+      intraSubnets: ["10.0.2.0/24", "10.0.3.0/24"],
+      intraSubnetNames: ["PrivateEcs1", "PrivateEcs2"],
+      databaseSubnets: ["10.0.4.0/24", "10.0.5.0/24"],
+      databaseSubnetNames: ["PrivateDb1", "PrivateDb2"],
+    });
+
+    // VPCendpoint用のサブネットの追加
+    const endpointSubnet = new Subnets(this, "EndpointSubnets", {
+      vpcId: vpc.vpcIdOutput,
+      availabilityZones: ["ap-northeast-1a"],
+      cidrBlock: "10.0.6.0/24",
+      subnetCount: "1",
+      tags: {
+        Name: "endpointSubnet",
+      },
     });
 
     // ALB用のセキュリティグループの作成
@@ -128,33 +130,59 @@ export class VpcStack extends TerraformStack {
     });
 
     // VPCエンドポイントの作成
-    new VpcEndpoint(this, "vpc-endpoint", {
+    new VpcEndpoint(this, "vpc-endpoint-ssm", {
       vpcId: vpc.vpcIdOutput,
+      serviceName: "com.amazonaws.ap-northeast-1.ssm",
+      vpcEndpointType: "Interface",
+      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
       securityGroupIds: [endpointSG.id],
-      endpoints: {
-        ec2messages: {
-          service: "ec2messages",
-          subnet_ids: vpc.privateSubnetsOutput,
-        },
-        ssmmessages: {
-          service: "ssmmessages",
-        },
-        ssm: {
-          service: "ssm",
-        },
+      tags: {
+        Name: "vpc-endpoint-ssm",
+      },
+    });
+
+    new VpcEndpoint(this, "vpc-endpoint-ssmmessages", {
+      vpcId: vpc.vpcIdOutput,
+      serviceName: "com.amazonaws.ap-northeast-1.ssmmessages",
+      vpcEndpointType: "Interface",
+      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
+      securityGroupIds: [endpointSG.id],
+      tags: {
+        Name: "vpc-endpoint-ssmmessages",
+      },
+    });
+
+    new VpcEndpoint(this, "vpc-endpoint-ec2messages", {
+      vpcId: vpc.vpcIdOutput,
+      serviceName: "com.amazonaws.ap-northeast-1.ec2messages",
+      vpcEndpointType: "Interface",
+      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
+      securityGroupIds: [endpointSG.id],
+      tags: {
+        Name: "vpc-endpoint-ec2messages",
+      },
+    });
+
+    // s3用のゲートウェイを作成
+    new VpcEndpoint(this, "vpc-endpoint-s3", {
+      vpcId: vpc.vpcIdOutput,
+      serviceName: "com.amazonaws.ap-northeast-1.s3",
+      vpcEndpointType: "Gateway",
+      routeTableIds: Token.asList(endpointSubnet.routeTableIdsOutput),
+      tags: {
+        Name: "vpc-endpoint-s3",
       },
     });
   }
 
   /*
-  private extractSubnetId(
-    subnetsList: string[] | undefined,
-    index: number
-  ): string[] {
-    if (subnetsList === undefined) {
+  private extractSubnetId(subnets: string[], index: number): string[] {
+    if (subnets === undefined) {
       throw new Error("subnet is not found");
     }
-    return subnetsList.slice(index);
+    console.log(subnets);
+    console.log(subnets.slice(index - 1));
+    return subnets.slice(index - 1);
   }
   */
 }

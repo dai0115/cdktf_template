@@ -11,6 +11,11 @@
       "version": "3.19.0"
     },
     {
+      "name": "Subnets",
+      "source": "claranet/vpc-modules/aws//modules/subnets",
+      "version": "1.1.1"
+    },
+    {
       "name": "VpcEndpoint",
       "source": "terraform-aws-modules/vpc/aws//modules/vpc-endpoints",
       "version": "3.19.0"
