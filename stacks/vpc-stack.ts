@@ -159,6 +159,13 @@ export class VpcStack extends TerraformStack {
     });
   }
 
+  /**
+   * @param name - セキュリティグループルールの名前
+   * @param vpcId - 通信のタイプ(inboudルール or outboundルール)
+   * @param securityGroupId - ルールを紐付けるセキュリティグループのId
+   *
+   * 全ての通信を許可する場合のセキュリティグループルールを作成
+   */
   private attachAllTrafficRules(
     name: string,
     trafficType: TrafficType,
