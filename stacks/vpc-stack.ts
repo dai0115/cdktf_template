@@ -9,7 +9,7 @@ import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 
-import { ConfigType, TrafficType } from "../config/types";
+import { ConfigType, TrafficType, endpointService } from "../config/types";
 
 export class VpcStack extends TerraformStack {
   constructor(scope: Construct, id: string, props: ConfigType) {
@@ -100,50 +100,12 @@ export class VpcStack extends TerraformStack {
       securityGroupId: endpointSG.id,
     });
 
-    // VPCエンドポイントの作成
-    new VpcEndpoint(this, "vpc-endpoint-ssm", {
-      vpcId: vpc.vpcIdOutput,
-      serviceName: "com.amazonaws.ap-northeast-1.ssm",
-      vpcEndpointType: "Interface",
-      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
-      securityGroupIds: [endpointSG.id],
-      tags: {
-        Name: "vpc-endpoint-ssm",
-      },
-    });
-
-    new VpcEndpoint(this, "vpc-endpoint-ssmmessages", {
-      vpcId: vpc.vpcIdOutput,
-      serviceName: "com.amazonaws.ap-northeast-1.ssmmessages",
-      vpcEndpointType: "Interface",
-      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
-      securityGroupIds: [endpointSG.id],
-      tags: {
-        Name: "vpc-endpoint-ssmmessages",
-      },
-    });
-
-    new VpcEndpoint(this, "vpc-endpoint-ec2messages", {
-      vpcId: vpc.vpcIdOutput,
-      serviceName: "com.amazonaws.ap-northeast-1.ec2messages",
-      vpcEndpointType: "Interface",
-      subnetIds: Token.asList(endpointSubnet.subnetIdsOutput),
-      securityGroupIds: [endpointSG.id],
-      tags: {
-        Name: "vpc-endpoint-ec2messages",
-      },
-    });
-
-    // s3用のゲートウェイを作成
-    new VpcEndpoint(this, "vpc-endpoint-s3", {
-      vpcId: vpc.vpcIdOutput,
-      serviceName: "com.amazonaws.ap-northeast-1.s3",
-      vpcEndpointType: "Gateway",
-      routeTableIds: Token.asList(endpointSubnet.routeTableIdsOutput),
-      tags: {
-        Name: "vpc-endpoint-s3",
-      },
-    });
+    this.createVpcEndpoint(
+      Token.asString(vpc.vpcIdOutput),
+      [endpointSG.id],
+      Token.asList(endpointSubnet.subnetIdsOutput),
+      Token.asList(endpointSubnet.routeTableIdsOutput)
+    );
   }
   /**
    * @param name - セキュリティグループの名前
@@ -158,10 +120,9 @@ export class VpcStack extends TerraformStack {
       },
     });
   }
-
   /**
    * @param name - セキュリティグループルールの名前
-   * @param vpcId - 通信のタイプ(inboudルール or outboundルール)
+   * @param trafficType - 通信のタイプ(inboudルール or outboundルール)
    * @param securityGroupId - ルールを紐付けるセキュリティグループのId
    *
    * 全ての通信を許可する場合のセキュリティグループルールを作成
@@ -179,5 +140,64 @@ export class VpcStack extends TerraformStack {
       protocol: "-1",
       securityGroupId: securityGroupId,
     });
+  }
+  /**
+   * @param vpcId - Vpcエンドポイントを作成するVpcのId
+   * @param securityGroupIds - Vpcエンドポイントに作成するセキュリティグループのId
+   * @param subnetIds - Vpcエンドポイントを作成するサブネットのId
+   * @param routeTableIds - VpcエンドポイントGatewayタイプに紐付けるルートテーブルのId
+   *
+   * 全ての通信を許可する場合のセキュリティグループルールを作成
+   */
+  private createVpcEndpoint(
+    vpcId: string,
+    securityGroupIds: string[],
+    subnetIds: string[],
+    routeTableIds: string[]
+  ) {
+    // 作成するVPCエンドポイントのサービス名とエンドポイントタイプを定義
+    const serviceMap: endpointService = [
+      {
+        serviceName: "ssm",
+        endpointType: "Interface",
+      },
+      {
+        serviceName: "ssmmessages",
+        endpointType: "Interface",
+      },
+      {
+        serviceName: "ec2messages",
+        endpointType: "Interface",
+      },
+      {
+        serviceName: "s3",
+        endpointType: "Gateway",
+      },
+    ];
+
+    for (const service of serviceMap) {
+      if (service.endpointType === "Interface") {
+        new VpcEndpoint(this, `vpc-endpoint-${service.serviceName}`, {
+          vpcId: vpcId,
+          serviceName: `com.amazonaws.ap-northeast-1.${service.serviceName}`,
+          vpcEndpointType: service.endpointType,
+          subnetIds: subnetIds,
+          securityGroupIds: securityGroupIds,
+          tags: {
+            Name: `vpc-endpoint-${service.serviceName}`,
+          },
+        });
+      } else {
+        new VpcEndpoint(this, `vpc-endpoint-${service.serviceName}`, {
+          vpcId: vpcId,
+          serviceName: `com.amazonaws.ap-northeast-1.${service.serviceName}`,
+          vpcEndpointType: service.endpointType,
+          routeTableIds: routeTableIds,
+          tags: {
+            Name: `vpc-endpoint-${service.serviceName}-Gateway`,
+          },
+        });
+      }
+    }
   }
 }

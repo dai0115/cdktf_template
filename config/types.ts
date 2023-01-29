@@ -32,3 +32,10 @@ export type SecurityGroupRules = {
 };
 
 export type TrafficType = "ingress" | "egress";
+
+export type endpointService = endpointServiceMap[];
+
+type endpointServiceMap = {
+  serviceName: string;
+  endpointType: "Interface" | "Gateway";
+};
