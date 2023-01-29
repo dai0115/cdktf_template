@@ -9,7 +9,7 @@ import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 
-import { ConfigType, SecurityGroupRules, TrafficType } from "../config/types";
+import { ConfigType, TrafficType } from "../config/types";
 
 export class VpcStack extends TerraformStack {
   constructor(scope: Construct, id: string, props: ConfigType) {
@@ -59,60 +59,46 @@ export class VpcStack extends TerraformStack {
 
     // セキュリティグループの作成
     const albSG = this.createSecurityGroup("alb", vpc.vpcIdOutput);
-    this.attachAllTrafficRules("alb", "ingress", albSG.id);
-    this.attachAllTrafficRules("alb", "egress", albSG.id);
+    this.attachAllTrafficRules("alb", "egress", albSG.id); // TODO inboundルールはVPC linkからのみ
 
     const ecsSG = this.createSecurityGroup("ecs", vpc.vpcIdOutput);
-    const ecsIngressRules: SecurityGroupRules = {
+    new SecurityGroupRule(this, "ecsSG-ingress-rule", {
+      sourceSecurityGroupId: albSG.id,
+      type: "ingress",
       fromPort: 8080,
       toPort: 8080,
-      trafficType: "ingress",
       protocol: "tcp",
       securityGroupId: ecsSG.id,
-    };
-    this.attachSecurityGroupRulesFromSg("alb", albSG.id, ecsIngressRules);
+    });
     this.attachAllTrafficRules("ecs", "egress", ecsSG.id);
 
     const bastionSG = this.createSecurityGroup("bastion", vpc.vpcIdOutput);
-    this.attachAllTrafficRules("bastion", "egress", bastionSG.id);
-
-    const endpointSG = this.createSecurityGroup("endpoint", vpc.vpcIdOutput);
-    const endpointIngressRules: SecurityGroupRules = {
+    new SecurityGroupRule(this, "bastionSG-egress-rule", {
+      cidrBlocks: ["0.0.0.0/0"],
+      type: "egress",
       fromPort: 443,
       toPort: 443,
-      trafficType: "ingress",
-      protocol: "tcp",
-      securityGroupId: endpointSG.id,
-    };
-    this.attachSecurityGroupRulesCidr(
-      "endpoint",
-      ["10.0.0.0/16"],
-      endpointIngressRules
-    );
-    const endpointIngressRules2: SecurityGroupRules = {
-      fromPort: 443,
-      toPort: 443,
-      trafficType: "ingress",
-      protocol: "tcp",
-      securityGroupId: endpointSG.id,
-    };
-    this.attachSecurityGroupRulesFromSg(
-      "bastion",
-      bastionSG.id,
-      endpointIngressRules2
-    );
-    const endpointEngressRules: SecurityGroupRules = {
-      fromPort: 0,
-      toPort: 0,
-      trafficType: "egress",
       protocol: "tcp",
       securityGroupId: bastionSG.id,
-    };
-    this.attachSecurityGroupRulesCidr(
-      "endpoint",
-      ["10.0.0.0/16"],
-      endpointEngressRules
-    );
+    });
+
+    const endpointSG = this.createSecurityGroup("endpoint", vpc.vpcIdOutput);
+    new SecurityGroupRule(this, "endpointSG-ingress-rule", {
+      sourceSecurityGroupId: bastionSG.id,
+      type: "ingress",
+      fromPort: 443,
+      toPort: 443,
+      protocol: "tcp",
+      securityGroupId: endpointSG.id,
+    });
+    new SecurityGroupRule(this, "endpointSG-egress-rule", {
+      cidrBlocks: ["0.0.0.0/0"],
+      type: "egress",
+      fromPort: 443,
+      toPort: 443,
+      protocol: "tcp",
+      securityGroupId: endpointSG.id,
+    });
 
     // VPCエンドポイントの作成
     new VpcEndpoint(this, "vpc-endpoint-ssm", {
@@ -185,46 +171,6 @@ export class VpcStack extends TerraformStack {
       toPort: 0,
       protocol: "-1",
       securityGroupId: securityGroupId,
-    });
-  }
-  /**
-   * @param name - セキュリティグループルールの名前
-   * @param cidr - 通信を許可する通信元(先)のCidrBlocks
-   * @param rules - セキュリティグループルールの詳細
-   */
-  private attachSecurityGroupRulesCidr(
-    name: string,
-    cidr: string[],
-    rules: SecurityGroupRules
-  ) {
-    new SecurityGroupRule(this, `${name}SG-${rules.trafficType}-rule`, {
-      cidrBlocks: cidr,
-      type: rules.trafficType,
-      fromPort: rules.fromPort,
-      toPort: rules.toPort,
-      protocol: rules.protocol,
-      securityGroupId: rules.securityGroupId,
-    });
-  }
-  /**
-   * @param name - セキュリティグループルールの名前
-   * @param cidr - 通信を許可する通信元(先)のセキュリティグループのId
-   * @param rules - セキュリティグループルールの詳細
-   *
-   * 通信元がセキュリティグループである場合に利用する
-   */
-  private attachSecurityGroupRulesFromSg(
-    name: string,
-    sourceSecurityGroupId: string,
-    rules: SecurityGroupRules
-  ) {
-    new SecurityGroupRule(this, `${name}SG-${rules.trafficType}-rule`, {
-      sourceSecurityGroupId: sourceSecurityGroupId,
-      type: rules.trafficType,
-      fromPort: rules.fromPort,
-      toPort: rules.toPort,
-      protocol: rules.protocol,
-      securityGroupId: rules.securityGroupId,
     });
   }
 }
