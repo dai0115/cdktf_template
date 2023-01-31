@@ -1,10 +1,10 @@
 import { App } from "cdktf";
 import { VpcStack } from "./stacks/vpc-stack";
-import { IamStack } from "./module/iam";
+import { DatabaseStack } from "./stacks/database-stack";
 
 import { devConfig } from "./config/dev";
 
 const app = new App();
 new VpcStack(app, "vpcStack", devConfig);
-new IamStack(app, "IamStack", devConfig);
+new DatabaseStack(app, "DatabaseStack", devConfig);
 app.synth();

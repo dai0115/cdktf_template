@@ -1,63 +1,98 @@
 import { Construct } from "constructs";
-import { TerraformStack } from "cdktf";
-import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
+//import { TerraformStack, Token } from "cdktf";
 
 import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
 
-import { ConfigType } from "../config/types";
+import {
+  IamPolicyConfig,
+  IamRoleConfig,
+  PolicyRoleAttachConfig,
+} from "./types";
 
-export class IamStack extends TerraformStack {
-  constructor(scope: Construct, id: string, props: ConfigType) {
+/**
+ * IAMポリシーを生成するクラス。最低限のプロパティのみを公開
+ * @params props - Statement内に設定する情報をもったオブジェクト
+ */
+export class Policy extends Construct {
+  readonly name: string;
+  readonly arn: string;
+
+  constructor(scope: Construct, id: string, props: IamPolicyConfig) {
     super(scope, id);
 
-    const { region, prefix } = props;
+    const { name, actions, resources, effect } = props;
 
-    new AwsProvider(this, `${prefix}-AWS`, {
-      region: region,
-    });
-
-    const bastionPolicy = new IamPolicy(this, `${prefix}-bastionPolicy`, {
-      name: `${prefix}-bastionPolicy`,
+    const policy = new IamPolicy(this, `${name}-Policy`, {
+      name: `${name}-Policy`,
       policy: JSON.stringify({
         Version: "2012-10-17",
         Statement: [
           {
-            Action: [
-              "ec2messages:*",
-              "ssm:UpdateInstanceInformation",
-              "ssmmessages:*",
-            ],
-            Resource: ["*"],
-            Effect: "Allow",
+            Action: actions,
+            Resource: resources,
+            Effect: effect,
           },
         ],
       }),
       tags: {
-        Name: `${prefix}-bastionPolicy`,
+        Name: `${name}-Policy`,
       },
     });
+    this.name = policy.name;
+    this.arn = policy.arn;
+  }
+}
 
-    const bastionRole = new IamRole(this, `${prefix}-bastionRole`, {
-      name: `${prefix}-bastionRole`,
+/**
+ * IAMロールを生成するクラス。最低限のプロパティのみを公開
+ * @params props - StatementおよびEffectに設定する情報をもったオブジェクト
+ */
+export class Role extends Construct {
+  readonly name: string;
+  readonly arn: string;
+
+  constructor(scope: Construct, id: string, props: IamRoleConfig) {
+    super(scope, id);
+
+    const { name, service, effect } = props;
+
+    const role = new IamRole(this, `${name}-Role`, {
+      name: `${name}-Role`,
       assumeRolePolicy: JSON.stringify({
         Version: "2012-10-17",
         Statement: [
           {
             Action: "sts:AssumeRole",
             Principal: {
-              Service: "ec2.amazonaws.com",
+              Service: service,
             },
-            Effect: "Allow",
+            Effect: effect,
           },
         ],
       }),
     });
+    this.name = role.name;
+    this.arn = role.arn;
+  }
+}
 
-    new IamRolePolicyAttachment(this, `${prefix}-attach-policy-role`, {
-      role: bastionRole.name,
-      policyArn: bastionPolicy.arn,
+/**
+ * IAMポリシーとIAMロールを紐付けるアタッチメントを生成するクラス。
+ * @params props.resourceName - idに設定するリソース名
+ * @params props.roleName - 紐付けを行うロールの名前
+ * @params props.policyArn - 紐付けを行うポリシーの名前
+ */
+export class PolicyRoleAttach extends Construct {
+  constructor(scope: Construct, id: string, props: PolicyRoleAttachConfig) {
+    super(scope, id);
+
+    const { resourceName, roleName, policyArn } = props;
+
+    new IamRolePolicyAttachment(this, resourceName, {
+      role: roleName,
+      policyArn: policyArn,
     });
   }
 }
