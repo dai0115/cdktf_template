@@ -4,6 +4,10 @@ import { Construct } from "constructs";
 import { IamPolicy } from "@cdktf/provider-aws/lib/iam-policy";
 import { IamRole } from "@cdktf/provider-aws/lib/iam-role";
 import { IamRolePolicyAttachment } from "@cdktf/provider-aws/lib/iam-role-policy-attachment";
+import {
+  IamInstanceProfile,
+  IamInstanceProfileConfig,
+} from "@cdktf/provider-aws/lib/iam-instance-profile";
 
 import {
   IamPolicyConfig,
@@ -94,5 +98,30 @@ export class PolicyRoleAttach extends Construct {
       role: roleName,
       policyArn: policyArn,
     });
+  }
+}
+
+/**
+ * IAMポリシーとIAMロールを紐付けるアタッチメントを生成するクラス。
+ * @params props.resourceName - idに設定するリソース名
+ * @params props.roleName - 紐付けを行うロールの名前
+ * @params props.policyArn - 紐付けを行うポリシーの名前
+ */
+export class InstancProfile extends Construct {
+  readonly name: string;
+  constructor(scope: Construct, id: string, props: IamInstanceProfileConfig) {
+    super(scope, id);
+
+    const { name, role } = props;
+
+    const instanceProfile = new IamInstanceProfile(
+      this,
+      `${name}-InstanceProfile`,
+      {
+        name: name,
+        role: role,
+      }
+    );
+    this.name = instanceProfile.name;
   }
 }

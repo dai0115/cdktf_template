@@ -12,6 +12,9 @@ import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 import { ConfigType, TrafficType, endpointService } from "../config/types";
 
 export class VpcStack extends TerraformStack {
+  readonly bastionSG: SecurityGroup;
+  readonly bastionSubnet: Subnets;
+
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
 
@@ -46,11 +49,22 @@ export class VpcStack extends TerraformStack {
       databaseSubnetNames: databaseSubnetNames,
     });
 
-    // VPCendpoint用のサブネットの追加
-    const endpointSubnet = new Subnets(this, `${prefix}-Subnet`, {
+    // 踏み台サーバ用のサブネットの追加
+    this.bastionSubnet = new Subnets(this, `${prefix}-bastion-Subnet`, {
       vpcId: vpc.vpcIdOutput,
       availabilityZones: ["ap-northeast-1a"],
       cidrBlock: "10.0.6.0/24",
+      subnetCount: "1",
+      tags: {
+        Name: `${prefix}-BastionSubnet`,
+      },
+    });
+
+    // VPCエンドポイント用のサブネットの追加
+    const endpointSubnet = new Subnets(this, `${prefix}-endpoint-Subnet`, {
+      vpcId: vpc.vpcIdOutput,
+      availabilityZones: ["ap-northeast-1a"],
+      cidrBlock: "10.0.7.0/24",
       subnetCount: "1",
       tags: {
         Name: `${prefix}-EndpointSubnet`,
@@ -70,35 +84,21 @@ export class VpcStack extends TerraformStack {
       protocol: "tcp",
       securityGroupId: ecsSG.id,
     });
-    this.attachAllTrafficRules("ecs", "egress", ecsSG.id);
+    //this.attachAllTrafficRules("ecs", "egress", ecsSG.id);
 
-    const bastionSG = this.createSecurityGroup("bastion", vpc.vpcIdOutput);
-    new SecurityGroupRule(this, "bastionSG-egress-rule", {
-      cidrBlocks: ["0.0.0.0/0"],
-      type: "egress",
-      fromPort: 443,
-      toPort: 443,
-      protocol: "tcp",
-      securityGroupId: bastionSG.id,
-    });
+    this.bastionSG = this.createSecurityGroup("bastion", vpc.vpcIdOutput);
+    this.attachAllTrafficRules("ecs", "egress", this.bastionSG.id);
 
     const endpointSG = this.createSecurityGroup("endpoint", vpc.vpcIdOutput);
     new SecurityGroupRule(this, "endpointSG-ingress-rule", {
-      sourceSecurityGroupId: bastionSG.id,
+      cidrBlocks: ["10.0.0.0/16"],
       type: "ingress",
       fromPort: 443,
       toPort: 443,
       protocol: "tcp",
       securityGroupId: endpointSG.id,
     });
-    new SecurityGroupRule(this, "endpointSG-egress-rule", {
-      cidrBlocks: ["0.0.0.0/0"],
-      type: "egress",
-      fromPort: 443,
-      toPort: 443,
-      protocol: "tcp",
-      securityGroupId: endpointSG.id,
-    });
+    this.attachAllTrafficRules("endpoint", "egress", endpointSG.id);
 
     this.createVpcEndpoint(
       Token.asString(vpc.vpcIdOutput),
