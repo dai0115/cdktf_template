@@ -104,7 +104,7 @@ export class VpcStack extends TerraformStack {
       Token.asString(vpc.vpcIdOutput),
       [endpointSG.id],
       Token.asList(endpointSubnet.subnetIdsOutput),
-      Token.asList(endpointSubnet.routeTableIdsOutput)
+      Token.asList(this.bastionSubnet.routeTableIdsOutput)
     );
   }
   /**
