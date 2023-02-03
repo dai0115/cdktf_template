@@ -14,6 +14,7 @@ import { ConfigType, TrafficType, endpointService } from "../config/types";
 export class VpcStack extends TerraformStack {
   readonly bastionSG: SecurityGroup;
   readonly bastionSubnet: Subnets;
+  readonly DBSubnetIds: string[];
 
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
@@ -48,6 +49,8 @@ export class VpcStack extends TerraformStack {
       databaseSubnets: databaseSubnets,
       databaseSubnetNames: databaseSubnetNames,
     });
+
+    this.DBSubnetIds = Token.asList(vpc.databaseSubnetsOutput);
 
     // 踏み台サーバ用のサブネットの追加
     this.bastionSubnet = new Subnets(this, `${prefix}-bastion-Subnet`, {

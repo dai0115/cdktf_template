@@ -10,5 +10,6 @@ new DatabaseStack(app, "DatabaseStack", {
   config: devConfig,
   securityGroup: vpc.bastionSG,
   bastionSubnet: vpc.bastionSubnet,
+  DBSubnetIds: vpc.DBSubnetIds,
 });
 app.synth();

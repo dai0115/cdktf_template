@@ -5,12 +5,8 @@ import { IamInstanceProfileConfig } from "@cdktf/provider-aws/lib/iam-instance-p
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { Subnets } from "../.gen/modules/Subnets";
 
-import { Policy, Role, PolicyRoleAttach, InstancProfile } from "../module/iam";
-import {
-  IamPolicyConfig,
-  IamRoleConfig,
-  PolicyRoleAttachConfig,
-} from "../module/types";
+import { Role, PolicyRoleAttach, InstancProfile } from "../module/iam";
+import { RoleConfig, PolicyRoleAttachConfig } from "../module/types";
 
 import { ConfigType } from "../config/types";
 
@@ -28,6 +24,7 @@ export class Bastion extends Construct {
     const { securityGroup, bastionSubnet } = props;
     const { prefix } = props.config;
 
+    /*
     const policyProps: IamPolicyConfig = {
       name: "bastion",
       actions: [
@@ -35,17 +32,18 @@ export class Bastion extends Construct {
         "ssm:UpdateInstanceInformation",
         "ssmmessages:*",
       ],
-      resources: ["*"], // TODO:踏み台サーバを作成したら権限を小さくする
+      resources: ["*"],
       effect: "Allow",
     };
     const policy = new Policy(this, `${policyProps.name}-Policy`, policyProps);
+    */
 
-    const roleProps: IamRoleConfig = {
+    const roleProps: RoleConfig = {
       name: "bastion",
       service: "ec2.amazonaws.com",
       effect: "Allow",
     };
-    const role = new Role(this, `${policyProps.name}-Role`, roleProps);
+    const role = new Role(this, `$${roleProps.name}-Role`, roleProps);
 
     const attachbacicPolicy: PolicyRoleAttachConfig = {
       resourceName: `${prefix}-attachPolicy-role`,
@@ -53,21 +51,10 @@ export class Bastion extends Construct {
       policyArn: "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
     };
 
-    const attachPolicyRoleProps: PolicyRoleAttachConfig = {
-      resourceName: `${prefix}-attachPolicy-role2`,
-      roleName: role.name,
-      policyArn: policy.arn,
-    };
-
     new PolicyRoleAttach(
       this,
       `${prefix}-attachPolicy-role`,
       attachbacicPolicy
-    );
-    new PolicyRoleAttach(
-      this,
-      `${prefix}-attachPolicy-role2`,
-      attachPolicyRoleProps
     );
 
     const instanceProfileConfig: IamInstanceProfileConfig = {
@@ -85,10 +72,15 @@ export class Bastion extends Construct {
     new Instance(this, "ec2instance", {
       ami: this.ami,
       iamInstanceProfile: instanceProfile.name,
-      instanceType: "t2.micro",
+      instanceType: "t3.micro",
       vpcSecurityGroupIds: [securityGroup.id],
       subnetId: Fn.element(Token.asList(bastionSubnet.subnetIdsOutput), 0),
       userData: Fn.file(path.join(__dirname, "bastion_install.sh")),
+      tags: {
+        Name: `${prefix}-bastion`,
+      },
     });
+
+    // Aurora作成
   }
 }
