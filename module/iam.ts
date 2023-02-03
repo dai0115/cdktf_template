@@ -9,11 +9,7 @@ import {
   IamInstanceProfileConfig,
 } from "@cdktf/provider-aws/lib/iam-instance-profile";
 
-import {
-  IamPolicyConfig,
-  IamRoleConfig,
-  PolicyRoleAttachConfig,
-} from "./types";
+import { PolicyConfig, RoleConfig, PolicyRoleAttachConfig } from "./types";
 
 /**
  * IAMポリシーを生成するクラス。最低限のプロパティのみを公開
@@ -23,7 +19,7 @@ export class Policy extends Construct {
   readonly name: string;
   readonly arn: string;
 
-  constructor(scope: Construct, id: string, props: IamPolicyConfig) {
+  constructor(scope: Construct, id: string, props: PolicyConfig) {
     super(scope, id);
 
     const { name, actions, resources, effect } = props;
@@ -57,7 +53,7 @@ export class Role extends Construct {
   readonly name: string;
   readonly arn: string;
 
-  constructor(scope: Construct, id: string, props: IamRoleConfig) {
+  constructor(scope: Construct, id: string, props: RoleConfig) {
     super(scope, id);
 
     const { name, service, effect } = props;

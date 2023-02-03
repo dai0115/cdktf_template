@@ -1,11 +1,11 @@
-export type IamPolicyConfig = {
+export type PolicyConfig = {
   name: string;
   actions: string[];
   resources: string[];
   effect: "Allow" | "Deny";
 };
 
-export type IamRoleConfig = {
+export type RoleConfig = {
   name: string;
   service: string;
   effect: "Allow" | "Deny";
