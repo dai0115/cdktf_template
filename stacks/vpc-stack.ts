@@ -183,6 +183,7 @@ export class VpcStack extends TerraformStack {
           vpcEndpointType: service.endpointType,
           subnetIds: subnetIds,
           securityGroupIds: securityGroupIds,
+          privateDnsEnabled: true,
           tags: {
             Name: `vpc-endpoint-${service.serviceName}`,
           },
