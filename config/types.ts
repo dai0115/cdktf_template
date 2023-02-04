@@ -1,15 +1,16 @@
 export type stageType = "dev" | "staging" | "prduction";
 
-export const appName = "project";
+export const appName = "bigbang";
 
-type prefix = `project-${stageType}`;
+type prefix = `bigbang-${stageType}`;
 
 export type ConfigType = {
   region: string;
   prefix: prefix;
   stage: stageType;
   appName: typeof appName;
-  vpcConfig: VpcConfig;
+  vpc: VpcConfig;
+  db: dbConfig;
 };
 
 type VpcConfig = {
@@ -21,6 +22,16 @@ type VpcConfig = {
   intraSubnetNames: string[];
   databaseSubnets: string[];
   databaseSubnetNames: string[];
+};
+
+type dbConfig = {
+  dbMasterUsername: string;
+  dbFamily: string;
+  clusterEngine: string;
+  clusterEngineVersion: string;
+  availabilityZones: string[];
+  instanceCount: number;
+  instanceClass: string;
 };
 
 export type SecurityGroupRules = {
