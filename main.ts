@@ -6,10 +6,11 @@ import { devConfig } from "./config/dev";
 
 const app = new App();
 const vpc = new VpcStack(app, "vpcStack", devConfig);
-new DatabaseStack(app, "DatabaseStack", {
+new DatabaseStack(app, "databaseStack", {
   config: devConfig,
-  securityGroup: vpc.bastionSG,
+  bastionSG: vpc.bastionSG,
+  dbSG: vpc.dbSG,
   bastionSubnet: vpc.bastionSubnet,
-  DBSubnetIds: vpc.DBSubnetIds,
+  subnetIds: vpc.dbSubnetIds,
 });
 app.synth();

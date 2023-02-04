@@ -3,7 +3,7 @@
   "app": "npx ts-node main.ts",
   "projectId": "ef5b78d0-4f93-4226-99d1-3da44ae1186b",
   "sendCrashReports": "false",
-  "terraformProviders": [],
+  "terraformProviders": ["random"],
   "terraformModules": [
     {
       "name": "Vpc",
