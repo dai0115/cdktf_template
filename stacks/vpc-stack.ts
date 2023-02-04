@@ -2,12 +2,12 @@ import { Construct } from "constructs";
 import { TerraformStack, Token } from "cdktf";
 import { AwsProvider } from "@cdktf/provider-aws/lib/provider";
 
-import { Vpc } from "../.gen/modules/Vpc";
-import { Subnets } from "../.gen/modules/Subnets";
-
 import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 import { SecurityGroup } from "@cdktf/provider-aws/lib/security-group";
 import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
+
+import { Vpc } from "../.gen/modules/Vpc";
+import { Subnets } from "../.gen/modules/Subnets";
 
 import { ConfigType, TrafficType, endpointService } from "../config/types";
 
@@ -32,7 +32,7 @@ export class VpcStack extends TerraformStack {
       intraSubnetNames,
       databaseSubnets,
       databaseSubnetNames,
-    } = props.vpcConfig;
+    } = props.vpc;
 
     new AwsProvider(this, `${prefix}-AWS`, {
       region: region,
