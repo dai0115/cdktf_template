@@ -12,9 +12,12 @@ import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 import { ConfigType, TrafficType, endpointService } from "../config/types";
 
 export class VpcStack extends TerraformStack {
+  readonly albSG: SecurityGroup;
+  readonly ecsSG: SecurityGroup;
   readonly bastionSG: SecurityGroup;
+  readonly dbSG: SecurityGroup;
   readonly bastionSubnet: Subnets;
-  readonly DBSubnetIds: string[];
+  readonly dbSubnetIds: string[];
 
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
@@ -49,8 +52,7 @@ export class VpcStack extends TerraformStack {
       databaseSubnets: databaseSubnets,
       databaseSubnetNames: databaseSubnetNames,
     });
-
-    this.DBSubnetIds = Token.asList(vpc.databaseSubnetsOutput);
+    this.dbSubnetIds = Token.asList(vpc.databaseSubnetsOutput);
 
     // 踏み台サーバ用のサブネットの追加
     this.bastionSubnet = new Subnets(this, `${prefix}-bastion-Subnet`, {
@@ -75,22 +77,41 @@ export class VpcStack extends TerraformStack {
     });
 
     // セキュリティグループの作成
-    const albSG = this.createSecurityGroup("alb", vpc.vpcIdOutput);
-    this.attachAllTrafficRules("alb", "egress", albSG.id); // TODO inboundルールはVPC linkからのみ
+    this.albSG = this.createSecurityGroup("alb", vpc.vpcIdOutput);
+    this.attachAllTrafficRules("alb", "egress", this.albSG.id); // TODO inboundルールはVPC linkからのみ
 
-    const ecsSG = this.createSecurityGroup("ecs", vpc.vpcIdOutput);
+    this.ecsSG = this.createSecurityGroup("ecs", vpc.vpcIdOutput);
     new SecurityGroupRule(this, "ecsSG-ingress-rule", {
-      sourceSecurityGroupId: albSG.id,
+      sourceSecurityGroupId: this.albSG.id,
       type: "ingress",
       fromPort: 8080,
       toPort: 8080,
       protocol: "tcp",
-      securityGroupId: ecsSG.id,
+      securityGroupId: this.ecsSG.id,
     });
-    //this.attachAllTrafficRules("ecs", "egress", ecsSG.id);
+    this.attachAllTrafficRules("ecs", "egress", this.ecsSG.id);
 
     this.bastionSG = this.createSecurityGroup("bastion", vpc.vpcIdOutput);
-    this.attachAllTrafficRules("ecs", "egress", this.bastionSG.id);
+    this.attachAllTrafficRules("bastion", "egress", this.bastionSG.id);
+
+    this.dbSG = this.createSecurityGroup("db", vpc.vpcIdOutput);
+    new SecurityGroupRule(this, "dbSG-ingress-rule1", {
+      sourceSecurityGroupId: this.bastionSG.id,
+      type: "ingress",
+      fromPort: 3306,
+      toPort: 3306,
+      protocol: "tcp",
+      securityGroupId: this.dbSG.id,
+    });
+    new SecurityGroupRule(this, "dbSG-ingress-rule2", {
+      sourceSecurityGroupId: this.ecsSG.id,
+      type: "ingress",
+      fromPort: 3306,
+      toPort: 3306,
+      protocol: "tcp",
+      securityGroupId: this.dbSG.id,
+    });
+    this.attachAllTrafficRules("db", "egress", this.dbSG.id);
 
     const endpointSG = this.createSecurityGroup("endpoint", vpc.vpcIdOutput);
     new SecurityGroupRule(this, "endpointSG-ingress-rule", {
@@ -103,6 +124,7 @@ export class VpcStack extends TerraformStack {
     });
     this.attachAllTrafficRules("endpoint", "egress", endpointSG.id);
 
+    // VPCエンドポイントの作成
     this.createVpcEndpoint(
       Token.asString(vpc.vpcIdOutput),
       [endpointSG.id],
