@@ -24,20 +24,6 @@ export class Bastion extends Construct {
     const { securityGroup, bastionSubnet } = props;
     const { prefix } = props.config;
 
-    /*
-    const policyProps: IamPolicyConfig = {
-      name: "bastion",
-      actions: [
-        "ec2messages:*",
-        "ssm:UpdateInstanceInformation",
-        "ssmmessages:*",
-      ],
-      resources: ["*"],
-      effect: "Allow",
-    };
-    const policy = new Policy(this, `${policyProps.name}-Policy`, policyProps);
-    */
-
     const roleProps: RoleConfig = {
       name: "bastion",
       service: "ec2.amazonaws.com",
