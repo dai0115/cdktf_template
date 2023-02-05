@@ -74,7 +74,7 @@ export class DatabaseStack extends TerraformStack {
 
     // rdsクラスターの作成
     const cluster = new RdsCluster(this, "rds-cluster", {
-      clusterIdentifier: `${prefix}-auroraCluster`,
+      clusterIdentifier: "bigbangauroracluster",
       engine: clusterEngine,
       engineVersion: clusterEngineVersion,
       availabilityZones: availabilityZones,
@@ -94,7 +94,7 @@ export class DatabaseStack extends TerraformStack {
     // rdsクラスターインスタンスの作成
     new RdsClusterInstance(this, `${prefix}-auroraClusterInstance`, {
       count: instanceCount,
-      identifier: `${prefix}-auroraClusterInstance`,
+      identifier: "bigbangauroraclusterinstance",
       clusterIdentifier: cluster.id,
       instanceClass: instanceClass,
       engine: cluster.engine,
@@ -144,7 +144,7 @@ export class DatabaseStack extends TerraformStack {
    */
   private createSubnetGroup(name: string, subnetIds: string[]): DbSubnetGroup {
     return new DbSubnetGroup(this, `${name}-subnetGroup`, {
-      name: `${name}-subnetGroup`,
+      name: "bigbangsubnetgroup",
       subnetIds: subnetIds,
       tags: {
         Name: `${name}-subnetGroup`,
@@ -206,7 +206,7 @@ export class DatabaseStack extends TerraformStack {
       },
     ];
     return new RdsClusterParameterGroup(this, `${name}-parameterGroup`, {
-      name: `${name}-parameterGroup`,
+      name: "bigbangparametergroup",
       family: dbFamily,
       parameter: parameterSettings,
     });
