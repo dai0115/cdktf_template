@@ -1,0 +1,199 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`assertions test for vpcStack Tests a custom abstraction 1`] = `
+"{
+}"
+`;
+
+exports[`vpcStack snapshot test for databaseStack 1`] = `
+"{
+  "provider": {
+    "aws": [
+      {
+        "region": "ap-northeast-1"
+      }
+    ],
+    "random": [
+      {
+      }
+    ]
+  },
+  "resource": {
+    "aws_db_subnet_group": {
+      "bigbang-dev-subnetGroup": {
+        "name": "bigbangsubnetgroup",
+        "subnet_ids": "\${module.bigbang-dev-Vpc.database_subnets}",
+        "tags": {
+          "Name": "bigbang-dev-subnetGroup"
+        }
+      }
+    },
+    "aws_iam_instance_profile": {
+      "bigbang-dev-Bastion_bigbang-dev-InstanceProfile_bigbang-dev-InstanceProfile-InstanceProfile_FB25147E": {
+        "name": "bigbang-dev-InstanceProfile",
+        "role": "\${aws_iam_role.bigbang-dev-Bastion_bastion-Role_37F421E2.name}"
+      }
+    },
+    "aws_iam_role": {
+      "bigbang-dev-Bastion_bastion-Role_37F421E2": {
+        "assume_role_policy": "{\\"Version\\":\\"2012-10-17\\",\\"Statement\\":[{\\"Action\\":\\"sts:AssumeRole\\",\\"Principal\\":{\\"Service\\":\\"ec2.amazonaws.com\\"},\\"Effect\\":\\"Allow\\"}]}",
+        "name": "bastion-Role"
+      }
+    },
+    "aws_iam_role_policy_attachment": {
+      "bigbang-dev-Bastion_bigbang-dev-attachPolicy-role_1568D505": {
+        "policy_arn": "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
+        "role": "\${aws_iam_role.bigbang-dev-Bastion_bastion-Role_37F421E2.name}"
+      }
+    },
+    "aws_instance": {
+      "bigbang-dev-Bastion_ec2instance_2C2B59A8": {
+        "ami": "ami-0ad64728720227ff8",
+        "iam_instance_profile": "\${aws_iam_instance_profile.bigbang-dev-Bastion_bigbang-dev-InstanceProfile_bigbang-dev-InstanceProfile-InstanceProfile_FB25147E.name}",
+        "instance_type": "t3.micro",
+        "subnet_id": "\${element(module.bigbang-dev-bastion-Subnet.subnet_ids, 0)}",
+        "tags": {
+          "Name": "bigbang-dev-bastion"
+        },
+        "user_data": "\${file(\\"/Users/dai/work/bigbang-iac/constructors/bastion_install.sh\\")}",
+        "vpc_security_group_ids": [
+          "\${aws_security_group.bastionSG.id}"
+        ]
+      }
+    },
+    "aws_kms_alias": {
+      "bigbang-dev-kmsAlias": {
+        "name": "alias/bigbang-dev",
+        "target_key_id": "\${aws_kms_key.bigbang-dev-kmskey.id}"
+      }
+    },
+    "aws_kms_key": {
+      "bigbang-dev-kmskey": {
+        "enable_key_rotation": true,
+        "tags": {
+          "Name": "bigbang-dev-kmskey"
+        }
+      }
+    },
+    "aws_rds_cluster": {
+      "rds-cluster": {
+        "availability_zones": [
+          "ap-northeast-1a"
+        ],
+        "cluster_identifier": "bigbangauroracluster",
+        "db_cluster_parameter_group_name": "\${aws_rds_cluster_parameter_group.bigbang-dev-parameterGroup.name}",
+        "db_subnet_group_name": "\${aws_db_subnet_group.bigbang-dev-subnetGroup.name}",
+        "enabled_cloudwatch_logs_exports": [
+          "audit",
+          "error",
+          "general",
+          "slowquery"
+        ],
+        "engine": "aurora-mysql",
+        "engine_version": "8.0.mysql_aurora.3.02.2",
+        "kms_key_id": "\${aws_kms_key.bigbang-dev-kmskey.arn}",
+        "master_password": "\${random_password.bigbang-dev-randomPass.result}",
+        "master_username": "bigbangroot",
+        "preferred_backup_window": "16:00-16:30",
+        "skip_final_snapshot": true,
+        "storage_encrypted": true,
+        "vpc_security_group_ids": [
+          "\${aws_security_group.dbSG.id}"
+        ]
+      }
+    },
+    "aws_rds_cluster_instance": {
+      "bigbang-dev-auroraClusterInstance": {
+        "cluster_identifier": "\${aws_rds_cluster.rds-cluster.id}",
+        "count": 1,
+        "engine": "\${aws_rds_cluster.rds-cluster.engine}",
+        "engine_version": "\${aws_rds_cluster.rds-cluster.engine_version}",
+        "identifier": "bigbangauroraclusterinstance",
+        "instance_class": "db.t3.medium"
+      }
+    },
+    "aws_rds_cluster_parameter_group": {
+      "bigbang-dev-parameterGroup": {
+        "family": "aurora-mysql8.0",
+        "name": "bigbangparametergroup",
+        "parameter": [
+          {
+            "name": "character_set_server",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_database",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_client",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_connection",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_results",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "time_zone",
+            "value": "UTC"
+          },
+          {
+            "name": "general_log",
+            "value": "1"
+          },
+          {
+            "name": "slow_query_log",
+            "value": "1"
+          },
+          {
+            "name": "long_query_time",
+            "value": "1"
+          },
+          {
+            "name": "server_audit_events",
+            "value": "CONNECT,QUERY,TABLE"
+          },
+          {
+            "name": "server_audit_logging",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "aws_secretsmanager_secret": {
+      "bigbang-dev-secret": {
+        "name": "bigbang-dev-secret"
+      }
+    },
+    "aws_secretsmanager_secret_version": {
+      "bigbang-dev-secretVersion": {
+        "secret_id": "\${aws_secretsmanager_secret.bigbang-dev-secret.id}",
+        "secret_string": "{\\"username\\":\\"bigbangroot\\",\\"password\\":\\"\${random_password.bigbang-dev-randomPass.result}\\"}"
+      }
+    },
+    "random_password": {
+      "bigbang-dev-randomPass": {
+        "length": 16,
+        "override_special": "!#$%&*()-_=+[]{}<>:?",
+        "special": true
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "aws": {
+        "source": "aws",
+        "version": "4.51.0"
+      },
+      "random": {
+        "source": "hashicorp/random",
+        "version": "3.4.3"
+      }
+    }
+  }
+}"
+`;

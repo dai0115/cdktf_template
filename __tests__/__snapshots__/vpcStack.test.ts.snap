@@ -1,0 +1,519 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`assertions test for vpcStack snapshot test for vpcStack 1`] = `
+"{
+  "module": {
+    "bigbang-dev-Vpc": {
+      "azs": [
+        "ap-northeast-1a",
+        "ap-northeast-1c"
+      ],
+      "cidr": "10.0.0.0/16",
+      "database_subnet_names": [
+        "PrivateDb1",
+        "PrivateDb2"
+      ],
+      "database_subnets": [
+        "10.0.4.0/24",
+        "10.0.5.0/24"
+      ],
+      "enable_dns_hostnames": true,
+      "enable_dns_support": true,
+      "intra_subnet_names": [
+        "PrivateEcs1",
+        "PrivateEcs2"
+      ],
+      "intra_subnets": [
+        "10.0.2.0/24",
+        "10.0.3.0/24"
+      ],
+      "name": "bigbang-dev-Vpc",
+      "private_subnet_names": [
+        "PrivateAlb1",
+        "PrivateAlb2"
+      ],
+      "private_subnets": [
+        "10.0.0.0/24",
+        "10.0.1.0/24"
+      ],
+      "source": "terraform-aws-modules/vpc/aws",
+      "version": "3.19.0"
+    },
+    "bigbang-dev-bastion-Subnet": {
+      "availability_zones": [
+        "ap-northeast-1a"
+      ],
+      "cidr_block": "10.0.6.0/24",
+      "source": "claranet/vpc-modules/aws//modules/subnets",
+      "subnet_count": "1",
+      "tags": {
+        "Name": "bigbang-dev-BastionSubnet"
+      },
+      "version": "1.1.1",
+      "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+    },
+    "bigbang-dev-endpoint-Subnet": {
+      "availability_zones": [
+        "ap-northeast-1a"
+      ],
+      "cidr_block": "10.0.7.0/24",
+      "source": "claranet/vpc-modules/aws//modules/subnets",
+      "subnet_count": "1",
+      "tags": {
+        "Name": "bigbang-dev-EndpointSubnet"
+      },
+      "version": "1.1.1",
+      "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+    }
+  },
+  "provider": {
+    "aws": [
+      {
+        "region": "ap-northeast-1"
+      }
+    ]
+  },
+  "resource": {
+    "aws_security_group": {
+      "albSG": {
+        "name": "albSG",
+        "tags": {
+          "Name": "albSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "bastionSG": {
+        "name": "bastionSG",
+        "tags": {
+          "Name": "bastionSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "dbSG": {
+        "name": "dbSG",
+        "tags": {
+          "Name": "dbSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "ecsSG": {
+        "name": "ecsSG",
+        "tags": {
+          "Name": "ecsSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "endpointSG": {
+        "name": "endpointSG",
+        "tags": {
+          "Name": "endpointSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      }
+    },
+    "aws_security_group_rule": {
+      "albSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.albSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "bastionSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.bastionSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "dbSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "dbSG-ingress-rule1": {
+        "from_port": 3306,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "source_security_group_id": "\${aws_security_group.bastionSG.id}",
+        "to_port": 3306,
+        "type": "ingress"
+      },
+      "dbSG-ingress-rule2": {
+        "from_port": 3306,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "source_security_group_id": "\${aws_security_group.ecsSG.id}",
+        "to_port": 3306,
+        "type": "ingress"
+      },
+      "ecsSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.ecsSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "ecsSG-ingress-rule": {
+        "from_port": 8080,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.ecsSG.id}",
+        "source_security_group_id": "\${aws_security_group.albSG.id}",
+        "to_port": 8080,
+        "type": "ingress"
+      },
+      "endpointSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.endpointSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "endpointSG-ingress-rule": {
+        "cidr_blocks": [
+          "10.0.0.0/16"
+        ],
+        "from_port": 443,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.endpointSG.id}",
+        "to_port": 443,
+        "type": "ingress"
+      }
+    },
+    "aws_vpc_endpoint": {
+      "vpc-endpoint-ec2messages": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ec2messages",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ec2messages"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-s3": {
+        "route_table_ids": "\${module.bigbang-dev-bastion-Subnet.route_table_ids}",
+        "service_name": "com.amazonaws.ap-northeast-1.s3",
+        "tags": {
+          "Name": "vpc-endpoint-s3-Gateway"
+        },
+        "vpc_endpoint_type": "Gateway",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-ssm": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ssm",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ssm"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-ssmmessages": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ssmmessages",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ssmmessages"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "aws": {
+        "source": "aws",
+        "version": "4.51.0"
+      }
+    }
+  }
+}"
+`;
+
+exports[`vpcStack snapshot test for vpcStack 1`] = `
+"{
+  "module": {
+    "bigbang-dev-Vpc": {
+      "azs": [
+        "ap-northeast-1a",
+        "ap-northeast-1c"
+      ],
+      "cidr": "10.0.0.0/16",
+      "database_subnet_names": [
+        "PrivateDb1",
+        "PrivateDb2"
+      ],
+      "database_subnets": [
+        "10.0.4.0/24",
+        "10.0.5.0/24"
+      ],
+      "enable_dns_hostnames": true,
+      "enable_dns_support": true,
+      "intra_subnet_names": [
+        "PrivateEcs1",
+        "PrivateEcs2"
+      ],
+      "intra_subnets": [
+        "10.0.2.0/24",
+        "10.0.3.0/24"
+      ],
+      "name": "bigbang-dev-Vpc",
+      "private_subnet_names": [
+        "PrivateAlb1",
+        "PrivateAlb2"
+      ],
+      "private_subnets": [
+        "10.0.0.0/24",
+        "10.0.1.0/24"
+      ],
+      "source": "terraform-aws-modules/vpc/aws",
+      "version": "3.19.0"
+    },
+    "bigbang-dev-bastion-Subnet": {
+      "availability_zones": [
+        "ap-northeast-1a"
+      ],
+      "cidr_block": "10.0.6.0/24",
+      "source": "claranet/vpc-modules/aws//modules/subnets",
+      "subnet_count": "1",
+      "tags": {
+        "Name": "bigbang-dev-BastionSubnet"
+      },
+      "version": "1.1.1",
+      "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+    },
+    "bigbang-dev-endpoint-Subnet": {
+      "availability_zones": [
+        "ap-northeast-1a"
+      ],
+      "cidr_block": "10.0.7.0/24",
+      "source": "claranet/vpc-modules/aws//modules/subnets",
+      "subnet_count": "1",
+      "tags": {
+        "Name": "bigbang-dev-EndpointSubnet"
+      },
+      "version": "1.1.1",
+      "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+    }
+  },
+  "provider": {
+    "aws": [
+      {
+        "region": "ap-northeast-1"
+      }
+    ]
+  },
+  "resource": {
+    "aws_security_group": {
+      "albSG": {
+        "name": "albSG",
+        "tags": {
+          "Name": "albSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "bastionSG": {
+        "name": "bastionSG",
+        "tags": {
+          "Name": "bastionSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "dbSG": {
+        "name": "dbSG",
+        "tags": {
+          "Name": "dbSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "ecsSG": {
+        "name": "ecsSG",
+        "tags": {
+          "Name": "ecsSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "endpointSG": {
+        "name": "endpointSG",
+        "tags": {
+          "Name": "endpointSG"
+        },
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      }
+    },
+    "aws_security_group_rule": {
+      "albSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.albSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "bastionSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.bastionSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "dbSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "dbSG-ingress-rule1": {
+        "from_port": 3306,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "source_security_group_id": "\${aws_security_group.bastionSG.id}",
+        "to_port": 3306,
+        "type": "ingress"
+      },
+      "dbSG-ingress-rule2": {
+        "from_port": 3306,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.dbSG.id}",
+        "source_security_group_id": "\${aws_security_group.ecsSG.id}",
+        "to_port": 3306,
+        "type": "ingress"
+      },
+      "ecsSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.ecsSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "ecsSG-ingress-rule": {
+        "from_port": 8080,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.ecsSG.id}",
+        "source_security_group_id": "\${aws_security_group.albSG.id}",
+        "to_port": 8080,
+        "type": "ingress"
+      },
+      "endpointSG-egress-rule": {
+        "cidr_blocks": [
+          "0.0.0.0/0"
+        ],
+        "from_port": 0,
+        "protocol": "-1",
+        "security_group_id": "\${aws_security_group.endpointSG.id}",
+        "to_port": 0,
+        "type": "egress"
+      },
+      "endpointSG-ingress-rule": {
+        "cidr_blocks": [
+          "10.0.0.0/16"
+        ],
+        "from_port": 443,
+        "protocol": "tcp",
+        "security_group_id": "\${aws_security_group.endpointSG.id}",
+        "to_port": 443,
+        "type": "ingress"
+      }
+    },
+    "aws_vpc_endpoint": {
+      "vpc-endpoint-ec2messages": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ec2messages",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ec2messages"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-s3": {
+        "route_table_ids": "\${module.bigbang-dev-bastion-Subnet.route_table_ids}",
+        "service_name": "com.amazonaws.ap-northeast-1.s3",
+        "tags": {
+          "Name": "vpc-endpoint-s3-Gateway"
+        },
+        "vpc_endpoint_type": "Gateway",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-ssm": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ssm",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ssm"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      },
+      "vpc-endpoint-ssmmessages": {
+        "private_dns_enabled": true,
+        "security_group_ids": [
+          "\${aws_security_group.endpointSG.id}"
+        ],
+        "service_name": "com.amazonaws.ap-northeast-1.ssmmessages",
+        "subnet_ids": "\${module.bigbang-dev-endpoint-Subnet.subnet_ids}",
+        "tags": {
+          "Name": "vpc-endpoint-ssmmessages"
+        },
+        "vpc_endpoint_type": "Interface",
+        "vpc_id": "\${module.bigbang-dev-Vpc.vpc_id}"
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "aws": {
+        "source": "aws",
+        "version": "4.51.0"
+      }
+    }
+  }
+}"
+`;
