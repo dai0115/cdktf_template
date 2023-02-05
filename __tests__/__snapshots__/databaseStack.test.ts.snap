@@ -1,10 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`assertions test for vpcStack Tests a custom abstraction 1`] = `
-"{
-}"
-`;
-
 exports[`vpcStack snapshot test for databaseStack 1`] = `
 "{
   "provider": {
@@ -55,7 +50,7 @@ exports[`vpcStack snapshot test for databaseStack 1`] = `
         "tags": {
           "Name": "bigbang-dev-bastion"
         },
-        "user_data": "\${file(\\"/Users/dai/work/bigbang-iac/constructors/bastion_install.sh\\")}",
+        "user_data": "\${file(\\"/Users/dai/Projects/bigbang-iac/constructors/bastion_install.sh\\")}",
         "vpc_security_group_ids": [
           "\${aws_security_group.bastionSG.id}"
         ]
