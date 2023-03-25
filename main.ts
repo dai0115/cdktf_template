@@ -1,9 +1,9 @@
 import { App } from "cdktf";
 
-import { VpcStack } from "./stacks/network-stack";
+import { NetworkStack } from "./stacks/network-stack";
 
 import { devConfig } from "./config/dev";
 
 const app = new App();
-new VpcStack(app, "vpcStack", devConfig);
+const vpc = new NetworkStack(app, "networkStack", devConfig);
 app.synth();

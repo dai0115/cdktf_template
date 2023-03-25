@@ -13,7 +13,7 @@ import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 
 import { ConfigType } from "../config/types";
 
-export class VpcStack extends TerraformStack {
+export class NetworkStack extends TerraformStack {
   readonly ecsSubnetIds: Array<string>;
   readonly dbSubnetIds: Array<string>;
   readonly albSubnetIds: Array<string>;
