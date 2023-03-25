@@ -13,5 +13,5 @@ export type ConfigType = {
 };
 
 type NetworkConfig = {
-  vpc: VpcConfig;
+  vpcConfig: VpcConfig;
 };

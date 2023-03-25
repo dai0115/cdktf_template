@@ -5,7 +5,7 @@ export const devConfig: ConfigType = {
   stage: "dev",
   prefix: "application-dev",
   network: {
-    vpc: {
+    vpcConfig: {
       cidrBlock: "10.0.0.0/16",
       enableDnsHostnames: true,
       enableDnsSupport: true,
