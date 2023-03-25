@@ -1,0 +1,162 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`databaseStack snapshot test for databaseStack 1`] = `
+"{
+  "provider": {
+    "aws": [
+      {
+        "region": "ap-northeast-1"
+      }
+    ],
+    "random": [
+      {
+      }
+    ]
+  },
+  "resource": {
+    "aws_db_subnet_group": {
+      "application-dev-subnetGroup": {
+        "name": "bigbangsubnetgroup",
+        "subnet_ids": [
+          "\${aws_subnet.application-dev-Db1.id}",
+          "\${aws_subnet.application-dev-Db2.id}"
+        ],
+        "tags": {
+          "Name": "application-dev-subnetGroup"
+        }
+      }
+    },
+    "aws_kms_alias": {
+      "application-dev-kmsAlias": {
+        "name": "alias/application-dev",
+        "target_key_id": "\${aws_kms_key.application-dev-kmskey.id}"
+      }
+    },
+    "aws_kms_key": {
+      "application-dev-kmskey": {
+        "enable_key_rotation": true
+      }
+    },
+    "aws_rds_cluster": {
+      "rds-cluster": {
+        "cluster_identifier": "bigbangauroracluster",
+        "db_cluster_parameter_group_name": "\${aws_rds_cluster_parameter_group.application-dev-parameterGroup.name}",
+        "db_subnet_group_name": "\${aws_db_subnet_group.application-dev-subnetGroup.name}",
+        "enabled_cloudwatch_logs_exports": [
+          "audit",
+          "error",
+          "general",
+          "slowquery"
+        ],
+        "engine": "aurora-mysql",
+        "engine_version": "8.0.mysql_aurora.3.02.2",
+        "kms_key_id": "\${aws_kms_key.application-dev-kmskey.arn}",
+        "master_password": "\${random_password.application-dev-randomPass.result}",
+        "master_username": "bigbangroot",
+        "preferred_backup_window": "16:00-16:30",
+        "skip_final_snapshot": true,
+        "storage_encrypted": true,
+        "vpc_security_group_ids": [
+          "\${aws_security_group.dbSG.id}"
+        ]
+      }
+    },
+    "aws_rds_cluster_instance": {
+      "application-dev-auroraClusterInstance": {
+        "apply_immediately": false,
+        "cluster_identifier": "\${aws_rds_cluster.rds-cluster.id}",
+        "count": 1,
+        "engine": "\${aws_rds_cluster.rds-cluster.engine}",
+        "engine_version": "\${aws_rds_cluster.rds-cluster.engine_version}",
+        "identifier": "bigbangauroraclusterinstance",
+        "instance_class": "db.t3.medium",
+        "tags": {
+          "Name": "application-dev-auroraClusterInstance"
+        }
+      }
+    },
+    "aws_rds_cluster_parameter_group": {
+      "application-dev-parameterGroup": {
+        "family": "aurora-mysql8.0",
+        "name": "bigbangparametergroup",
+        "parameter": [
+          {
+            "name": "character_set_server",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_database",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_client",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_connection",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "character_set_results",
+            "value": "utf8mb4"
+          },
+          {
+            "name": "time_zone",
+            "value": "UTC"
+          },
+          {
+            "name": "general_log",
+            "value": "1"
+          },
+          {
+            "name": "slow_query_log",
+            "value": "1"
+          },
+          {
+            "name": "long_query_time",
+            "value": "1"
+          },
+          {
+            "name": "server_audit_events",
+            "value": "CONNECT,QUERY,TABLE"
+          },
+          {
+            "name": "server_audit_logging",
+            "value": "1"
+          }
+        ]
+      }
+    },
+    "aws_secretsmanager_secret": {
+      "application-devrds-secret": {
+        "name": "application-devrds-secret"
+      }
+    },
+    "aws_secretsmanager_secret_version": {
+      "application-devrds-secretVersion": {
+        "secret_id": "\${aws_secretsmanager_secret.application-devrds-secret.id}",
+        "secret_string": "{\\"username\\":\\"bigbangroot\\",\\"password\\":\\"\${random_password.application-dev-randomPass.result}\\"}"
+      }
+    },
+    "random_password": {
+      "application-dev-randomPass": {
+        "length": 16,
+        "override_special": "!#$%&*()-_=+[]{}<>:?",
+        "special": true
+      }
+    }
+  },
+  "terraform": {
+    "required_providers": {
+      "aws": {
+        "source": "aws",
+        "version": "4.60.0"
+      },
+      "random": {
+        "source": "hashicorp/random",
+        "version": "3.4.3"
+      }
+    }
+  }
+}"
+`;
