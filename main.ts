@@ -1,14 +1,9 @@
-import { Construct } from "constructs";
-import { App, TerraformStack } from "cdktf";
+import { App } from "cdktf";
 
-class MyStack extends TerraformStack {
-  constructor(scope: Construct, id: string) {
-    super(scope, id);
+import { VpcStack } from "./stacks/network-stack";
 
-    // define resources here
-  }
-}
+import { devConfig } from "./config/dev";
 
 const app = new App();
-new MyStack(app, "cdktf_template");
+new VpcStack(app, "vpcStack", devConfig);
 app.synth();
