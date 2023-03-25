@@ -8,6 +8,11 @@ import { Subnet } from "@cdktf/provider-aws/lib/subnet";
 import { ConfigType } from "../config/types";
 
 export class VpcStack extends TerraformStack {
+  readonly ecsSubnetIds: Array<string>;
+  readonly dbSubnetIds: Array<string>;
+  readonly albSubnetIds: Array<string>;
+  readonly endpointSubnetId: string;
+
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
 
@@ -27,48 +32,51 @@ export class VpcStack extends TerraformStack {
     });
 
     // サブネットの作成
-    this.createSubnet(
+    const ecsSubnet1 = this.createSubnet(
       `${prefix}-Ecs1`,
       vpc.id,
       "10.0.0.0/24",
       "ap-northeast-1a"
     );
-    this.createSubnet(
+    const ecsSubnet2 = this.createSubnet(
       `${prefix}-Ecs2`,
       vpc.id,
       "10.0.1.0/24",
       "ap-northeast-1c"
     );
-    this.createSubnet(
+    const dbSubnet1 = this.createSubnet(
       `${prefix}-Db1`,
       vpc.id,
       "10.0.2.0/24",
       "ap-northeast-1a"
     );
-    this.createSubnet(
+    const dbSubnet2 = this.createSubnet(
       `${prefix}-Db2`,
       vpc.id,
       "10.0.3.0/24",
       "ap-northeast-1c"
     );
-    this.createSubnet(
+    const albSubnet1 = this.createSubnet(
       `${prefix}-Alb1`,
       vpc.id,
       "10.0.4.0/24",
       "ap-northeast-1a"
     );
-    this.createSubnet(
+    const albSubnet2 = this.createSubnet(
       `${prefix}-Alb2`,
       vpc.id,
       "10.0.5.0/24",
       "ap-northeast-1c"
     );
-    this.createSubnet(
+    this.endpointSubnetId = this.createSubnet(
       `${prefix}-Endpoint1`,
       vpc.id,
       "10.0.6.0/24",
       "ap-northeast-1a"
     );
+    this.ecsSubnetIds = [ecsSubnet1, ecsSubnet2];
+    this.dbSubnetIds = [dbSubnet1, dbSubnet2];
+    this.albSubnetIds = [albSubnet1, albSubnet2];
   }
   /**
    * @param name - 作成するサブネットの名前
@@ -82,8 +90,8 @@ export class VpcStack extends TerraformStack {
     vpcId: string,
     cideBlock: string,
     availabilityZone: string
-  ): Subnet {
-    return new Subnet(this, name, {
+  ): string {
+    const subnet = new Subnet(this, name, {
       vpcId: vpcId,
       cidrBlock: cideBlock,
       availabilityZone: availabilityZone,
@@ -91,5 +99,6 @@ export class VpcStack extends TerraformStack {
         Name: name,
       },
     });
+    return subnet.id;
   }
 }
