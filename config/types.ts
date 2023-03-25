@@ -10,8 +10,18 @@ export type ConfigType = {
   prefix: prefix;
   stage: stageType;
   network: NetworkConfig;
+  db: DbConfig;
 };
 
 type NetworkConfig = {
   vpcConfig: VpcConfig;
+};
+
+type DbConfig = {
+  dbMasterUsername: string;
+  dbFamily: string;
+  clusterEngine: string;
+  clusterEngineVersion: string;
+  instanceCount: number;
+  instanceClass: string;
 };
