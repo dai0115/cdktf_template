@@ -184,7 +184,8 @@ export class NetworkStack extends TerraformStack {
     this.attachAllTrafficRules("bastion", this.bastionSG.id);
 
     // VPCエンドポイントの作成
-    this.createGatewayEndpoint(vpc.id, ecsRouteTable.id, "s3");
+    this.createGatewayEndpoint("ecs", vpc.id, ecsRouteTable.id, "s3");
+    this.createGatewayEndpoint("bastion", vpc.id, bastionRouteTable.id, "s3");
 
     const serviceNames: string[] = [
       "ssm",
@@ -313,11 +314,12 @@ export class NetworkStack extends TerraformStack {
    * ゲートウェイ型のエンドポイントを作成
    */
   private createGatewayEndpoint(
+    name: string,
     vpcId: string,
     routeTableId: string,
     serviceName: string
   ): VpcEndpoint {
-    return new VpcEndpoint(this, `vpc-endpoint-${serviceName}`, {
+    return new VpcEndpoint(this, `${name}-vpc-endpoint-${serviceName}`, {
       vpcId: vpcId,
       serviceName: `com.amazonaws.ap-northeast-1.${serviceName}`,
       vpcEndpointType: "Gateway",
