@@ -9,5 +9,5 @@ SECURITY_GROUPS=$(aws ec2 describe-security-groups --filters "Name=tag:Name,Valu
 # start task
 aws ecs run-task --cluster $CLUSTER --count 1 --launch-type FARGATE \
     --enable-execute-command \
-    --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SECURITY_GROUPS],assignPublicIp=ENABLED}" \
+    --network-configuration "awsvpcConfiguration={subnets=[$SUBNETS],securityGroups=[$SECURITY_GROUPS],assignPublicIp=DISABLED}" \
     --task-definition application-dev-BastiontaskDefinition

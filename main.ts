@@ -15,7 +15,5 @@ new DatabaseStack(app, "databaseStack", {
 });
 new BastionStack(app, "bastionStack", {
   config: devConfig,
-  bastionSG: vpc.bastionSG,
-  bastionSubnetId: vpc.bastionSubnetId,
 });
 app.synth();

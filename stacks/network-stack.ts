@@ -18,11 +18,9 @@ export class NetworkStack extends TerraformStack {
   readonly dbSubnetIds: Array<string>;
   readonly albSubnetIds: Array<string>;
   readonly endpointSubnetId: string;
-  readonly bastionSubnetId: string;
   readonly albSG: SecurityGroup;
   readonly ecsSG: SecurityGroup;
   readonly dbSG: SecurityGroup;
-  readonly bastionSG: SecurityGroup;
 
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
@@ -88,7 +86,7 @@ export class NetworkStack extends TerraformStack {
       "10.0.6.0/24",
       "ap-northeast-1a"
     );
-    this.bastionSubnetId = this.createSubnet(
+    const bastionSubnetId = this.createSubnet(
       `${prefix}-Bastion`,
       vpc.id,
       "10.0.7.0/24",
@@ -117,7 +115,7 @@ export class NetworkStack extends TerraformStack {
     this.attachRouteTabletoSubnet("alb2", albSubnet2, albRouteTable.id);
     this.attachRouteTabletoSubnet(
       "bastion",
-      this.bastionSubnetId,
+      bastionSubnetId,
       bastionRouteTable.id
     );
     this.attachRouteTabletoSubnet(
@@ -180,8 +178,8 @@ export class NetworkStack extends TerraformStack {
     });
     this.attachAllTrafficRules("endpoint", endpointSG.id);
 
-    this.bastionSG = this.createSecurityGroup("bastion", vpc.id);
-    this.attachAllTrafficRules("bastion", this.bastionSG.id);
+    const bastionSG = this.createSecurityGroup("bastion", vpc.id);
+    this.attachAllTrafficRules("bastion", bastionSG.id);
 
     // VPCエンドポイントの作成
     this.createGatewayEndpoint("ecs", vpc.id, ecsRouteTable.id, "s3");
@@ -195,6 +193,9 @@ export class NetworkStack extends TerraformStack {
       "ecr.dkr",
       "logs",
       "secretsmanager",
+      "ecs-agent",
+      "ecs-telemetry",
+      "ecs",
     ];
     for (const service of serviceNames) {
       this.createInterfaceEndpoint(
