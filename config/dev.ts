@@ -19,4 +19,57 @@ export const devConfig: ConfigType = {
     instanceCount: 1,
     instanceClass: "db.t3.medium",
   },
+  staticWebsiteHosting: {
+    s3: {
+      bucket: "application-dev-cdktf-template", // chenge here to be unique
+    },
+    bucketAcl: { acl: "private" },
+    ipSet: {
+      name: "ipSet",
+      scope: "CLOUDFRONT",
+      ipAddressVersion: "IPV4",
+    },
+    ruleGroup: {
+      scope: "CLOUDFRONT",
+      capacity: 2,
+      visibilityConfig: {
+        cloudwatchMetricsEnabled: false,
+        metricName: "rule-group",
+        sampledRequestsEnabled: false,
+      },
+    },
+    wafv2WebAcl: {
+      description: `Web ACL`,
+      scope: "CLOUDFRONT",
+      defaultAction: { block: {} },
+      visibilityConfig: {
+        cloudwatchMetricsEnabled: false,
+        metricName: "WebACLMetric",
+        sampledRequestsEnabled: false,
+      },
+    },
+    cloudfrontOAC: {
+      originAccessControlOriginType: "s3",
+      signingBehavior: "always",
+      signingProtocol: "sigv4",
+    },
+    cloudfrontDistribution: {
+      enabled: true,
+      defaultRootObject: "index.html",
+      restrictions: {
+        geoRestriction: {
+          restrictionType: "whitelist",
+          locations: ["JP"],
+        },
+      },
+      viewerCertificate: { cloudfrontDefaultCertificate: true },
+      priceClass: "PriceClass_200",
+    },
+    s3PublicAccessBlock: {
+      blockPublicAcls: true,
+      blockPublicPolicy: true,
+      ignorePublicAcls: true,
+      restrictPublicBuckets: true,
+    },
+  },
 };
