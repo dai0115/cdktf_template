@@ -8,6 +8,17 @@ import { Wafv2RuleGroupConfig } from "@cdktf/provider-aws/lib/wafv2-rule-group";
 import { Wafv2WebAclConfig } from "@cdktf/provider-aws/lib/wafv2-web-acl";
 import { CloudfrontDistributionConfig } from "@cdktf/provider-aws/lib/cloudfront-distribution";
 import { CloudfrontOriginAccessControlConfig } from "@cdktf/provider-aws/lib/cloudfront-origin-access-control";
+import { CognitoUserPoolConfig } from "@cdktf/provider-aws/lib/cognito-user-pool";
+import { EcrRepositoryConfig } from "@cdktf/provider-aws/lib/ecr-repository";
+import { EcsClusterConfig } from "@cdktf/provider-aws/lib/ecs-cluster";
+import { EcsServiceConfig } from "@cdktf/provider-aws/lib/ecs-service";
+import { EcsTaskDefinitionConfig } from "@cdktf/provider-aws/lib/ecs-task-definition";
+import {
+  CodedeployDeploymentGroupAutoRollbackConfiguration,
+  CodedeployDeploymentGroupBlueGreenDeploymentConfig,
+  CodedeployDeploymentGroupDeploymentStyle,
+} from "@cdktf/provider-aws/lib/codedeploy-deployment-group";
+import { IamRoleConfig } from "@cdktf/provider-aws/lib/iam-role";
 
 export type stageType = "dev" | "staging" | "prduction";
 
@@ -20,7 +31,9 @@ export type ConfigType = {
   stage: stageType;
   network: NetworkConfig;
   db: DbConfig;
+  cognito: CognitoConfigType;
   staticWebsiteHosting: StaticWebsiteHostingConfigType;
+  computing: ComputingConfigType;
 };
 
 type NetworkConfig = {
@@ -35,6 +48,21 @@ type DbConfig = {
   instanceCount: number;
   instanceClass: string;
 };
+
+type OptionalCognitoConfig =
+  | "aliasAttributes"
+  | "deviceConfiguration"
+  | "emailVerificationMessage"
+  | "emailVerificationSubject"
+  | "smsAuthenticationMessage"
+  | "smsConfiguration"
+  | "smsVerificationMessage"
+  | "tags"
+  | "userAttributeUpdateSettings"
+  | "userPoolAddOns"
+  | "verificationMessageTemplate";
+
+type CognitoConfigType = Omit<CognitoUserPoolConfig, OptionalCognitoConfig>;
 
 type StaticWebsiteHostingConfigType = {
   s3: S3ConfigType;
@@ -84,3 +112,30 @@ type S3PublicAccessBlockType = Omit<
   S3BucketPublicAccessBlockConfig,
   OptinalS3BucketPublicAccessBlockConfig
 >;
+
+type ComputingConfigType = {
+  ecrConfig: Omit<EcrRepositoryConfig, "name">;
+  clusterConfig: Omit<EcsClusterConfig, "name">;
+  taskRoleConfig: Omit<IamRoleConfig, "name" | "assumeRolePolicy">;
+  executionRoleConfig: Omit<IamRoleConfig, "name" | "assumeRolePolicy">;
+  taskDefinitionConfig: Omit<
+    EcsTaskDefinitionConfig,
+    | "name"
+    | "family"
+    | "taskRoleArn"
+    | "executionRoleArn"
+    | "containerDefinitions"
+  >;
+  serviceConfig: Omit<
+    EcsServiceConfig,
+    | "name"
+    | "cluster"
+    | "taskDefinition"
+    | "networkConfiguration"
+    | "loadBalancer"
+  >;
+  autoRollbackConfig: CodedeployDeploymentGroupAutoRollbackConfiguration;
+  bluegreenDeploymentConfig: CodedeployDeploymentGroupBlueGreenDeploymentConfig;
+  deploymentStyleConfig: CodedeployDeploymentGroupDeploymentStyle;
+  deploymentConfigName: string;
+};
