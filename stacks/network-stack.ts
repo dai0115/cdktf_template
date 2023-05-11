@@ -9,18 +9,24 @@ import { SecurityGroupRule } from "@cdktf/provider-aws/lib/security-group-rule";
 import { InternetGateway } from "@cdktf/provider-aws/lib/internet-gateway";
 import { RouteTable } from "@cdktf/provider-aws/lib/route-table";
 import { RouteTableAssociation } from "@cdktf/provider-aws/lib/route-table-association";
+import { AlbListener } from "@cdktf/provider-aws/lib/alb-listener";
+import { Lb } from "@cdktf/provider-aws/lib/lb";
+import { LbTargetGroup } from "@cdktf/provider-aws/lib/lb-target-group";
 import { VpcEndpoint } from "@cdktf/provider-aws/lib/vpc-endpoint";
 
 import { ConfigType } from "../config/types";
 
 export class NetworkStack extends TerraformStack {
-  readonly ecsSubnetIds: Array<string>;
-  readonly dbSubnetIds: Array<string>;
-  readonly albSubnetIds: Array<string>;
+  readonly ecsSubnetIds: string[];
+  readonly dbSubnetIds: string[];
+  readonly albSubnetIds: string[];
   readonly endpointSubnetId: string;
   readonly albSG: SecurityGroup;
   readonly ecsSG: SecurityGroup;
   readonly dbSG: SecurityGroup;
+  readonly targetG: LbTargetGroup;
+  readonly targetG2: LbTargetGroup;
+  readonly albListener: AlbListener;
 
   constructor(scope: Construct, id: string, props: ConfigType) {
     super(scope, id);
@@ -131,6 +137,9 @@ export class NetworkStack extends TerraformStack {
       routeTableId: albRouteTable.id,
     });
 
+    const bastionSG = this.createSecurityGroup("bastion", vpc.id);
+    this.attachAllTrafficRules("bastion", bastionSG.id);
+
     // セキュリティグループの作成
     this.albSG = this.createSecurityGroup("alb", vpc.id);
     new SecurityGroupRule(this, "albSG-ingress-rule", {
@@ -157,8 +166,16 @@ export class NetworkStack extends TerraformStack {
     this.attachAllTrafficRules("ecs", this.ecsSG.id);
 
     this.dbSG = this.createSecurityGroup("db", vpc.id);
-    new SecurityGroupRule(this, "dbSG-ingress-rule2", {
+    new SecurityGroupRule(this, "dbSG-ingress-rule1", {
       sourceSecurityGroupId: this.ecsSG.id,
+      type: "ingress",
+      fromPort: 3306,
+      toPort: 3306,
+      protocol: "tcp",
+      securityGroupId: this.dbSG.id,
+    });
+    new SecurityGroupRule(this, "dbSG-ingress-rule2", {
+      sourceSecurityGroupId: bastionSG.id,
       type: "ingress",
       fromPort: 3306,
       toPort: 3306,
@@ -178,8 +195,58 @@ export class NetworkStack extends TerraformStack {
     });
     this.attachAllTrafficRules("endpoint", endpointSG.id);
 
-    const bastionSG = this.createSecurityGroup("bastion", vpc.id);
-    this.attachAllTrafficRules("bastion", bastionSG.id);
+    // ALB関連リソースの作成
+    const alb = new Lb(this, `alb`, {
+      name: `${prefix}-lb`,
+      internal: true,
+      loadBalancerType: "application",
+      securityGroups: [this.albSG.id],
+      subnets: this.albSubnetIds,
+      /*
+      accessLogs: {
+        enabled: true,
+        bucket: "access_log_bucket_for_cdktf",
+        prefix: "",
+      },
+      */
+    });
+
+    this.targetG = new LbTargetGroup(this, `target-group`, {
+      name: `${prefix}-target-group`,
+      port: 80,
+      protocol: "HTTP",
+      targetType: "ip",
+      vpcId: vpc.id,
+      healthCheck: {
+        enabled: true,
+        path: "/health",
+      },
+    });
+
+    // blue/greenデプロイ用に2つ目のターゲットグループを作成
+    this.targetG2 = new LbTargetGroup(this, `target-group2`, {
+      name: `${prefix}-target-group2`,
+      port: 80,
+      protocol: "HTTP",
+      targetType: "ip",
+      vpcId: vpc.id,
+      healthCheck: {
+        enabled: true,
+        path: "/health",
+      },
+    });
+
+    this.albListener = new AlbListener(this, `alb-listener`, {
+      loadBalancerArn: alb.arn,
+      port: 80,
+      protocol: "HTTP",
+      defaultAction: [
+        {
+          type: "forward",
+          targetGroupArn: this.targetG.arn,
+        },
+      ],
+    });
 
     // VPCエンドポイントの作成
     this.createGatewayEndpoint("ecs", vpc.id, ecsRouteTable.id, "s3");
