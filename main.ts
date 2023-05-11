@@ -7,7 +7,7 @@ import { CognitoStack } from "./stacks/cognito-stack";
 import { StaticWebsiteHostingStack } from "./stacks/staticWebsiteHosting-stack";
 import { ComputingStack } from "./stacks/computing-stack";
 
-import { devConfig } from "./config/dev";
+import { devConfig } from "./config/dev"; // use GETCONFIG methods defined in config.ts to get the config
 
 const app = new App();
 const vpc = new NetworkStack(app, "networkStack", devConfig);
